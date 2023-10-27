@@ -542,11 +542,24 @@ fun ShowCaption(
     val clipboardManager: androidx.compose.ui.platform.ClipboardManager =
         LocalClipboardManager.current
 
+    val onCopy: (Caption) -> Unit = { caption ->
+        (homeViewModel::onCopy)(caption)
+
+        Toast.makeText(context, "Caption Copied", Toast.LENGTH_SHORT).show()
+        clipboardManager.setText(AnnotatedString(caption.text + "\n- " + caption.author))
+        val audioManager =
+            context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        audioManager.playSoundEffect(AudioManager.FX_KEYPRESS_STANDARD, 1.0f)
+    }
+
     Card(
         shape = RoundedCornerShape(4.dp),
         modifier = Modifier.padding(2.dp),
     ) {
-        ListItem(
+        ListItem(modifier = Modifier.clickable {
+
+            onCopy(caption)
+        },
             headlineContent = {
                 Text(buildAnnotatedString {
                     val startIndex =
@@ -581,13 +594,7 @@ fun ShowCaption(
             trailingContent = {
 
                 Row(modifier = Modifier.clickable {
-                    (homeViewModel::onCopy)(caption)
-
-                    Toast.makeText(context, "Caption Copied", Toast.LENGTH_SHORT).show()
-                    clipboardManager.setText(AnnotatedString(caption.text + "\n- " + caption.author))
-                    val audioManager =
-                        context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-                    audioManager.playSoundEffect(AudioManager.FX_KEYPRESS_STANDARD, 1.0f)
+                    onCopy(caption)
 
                 }) {
                     Icon(

@@ -5,6 +5,7 @@ import android.media.AudioManager
 import android.util.Log
 import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -120,6 +121,8 @@ fun HomeScreen(
         showProgressBar(viewState)
         ShowLazyColumn(viewState, homeViewModel, listState)
     }
+
+
 }
 
 @OptIn(ExperimentalTextApi::class)
@@ -161,6 +164,16 @@ private fun ShowDocketSearchBar(
     val coroutineScope = rememberCoroutineScope()
 
     var active by rememberSaveable { mutableStateOf(false) }
+    val onClear: () -> Unit = {
+        focusManager.clearFocus()
+        coroutineScope.launch {
+            listState.animateScrollToItem(0)
+        }
+        (homeViewModel::onClear)()
+    }
+    BackHandler(captionUiState.queryString.isNotEmpty()) {
+        onClear()
+    }
 
     DockedSearchBar(
         colors = SearchBarDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
@@ -185,12 +198,7 @@ private fun ShowDocketSearchBar(
             if (captionUiState.queryString.isNotEmpty()) {
                 Icon(
                     modifier = Modifier.clickable {
-
-                        focusManager.clearFocus()
-                        coroutineScope.launch {
-                            listState.animateScrollToItem(0)
-                        }
-                        (homeViewModel::onClear)()
+                        onClear()
                     },
                     imageVector = Icons.Rounded.Clear,
                     tint = MaterialTheme.colorScheme.surfaceTint,
@@ -370,7 +378,7 @@ private fun ShowHorizontalGrid(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         horizontalItemSpacing = 4.dp
     ) {
-        items(captionUiState.hashtags,key={it.id}) { hashtag ->
+        items(captionUiState.hashtags, key = { it.id }) { hashtag ->
 
             val indexCalculationInMultiple = calculateIndex(captionUiState, hashtag)
             val hashtagItem = hashtag.synonyms[indexCalculationInMultiple]
@@ -556,10 +564,11 @@ fun ShowCaption(
         shape = RoundedCornerShape(4.dp),
         modifier = Modifier.padding(2.dp),
     ) {
-        ListItem(modifier = Modifier.clickable {
+        ListItem(
+            modifier = Modifier.clickable {
 
-            onCopy(caption)
-        },
+                onCopy(caption)
+            },
             headlineContent = {
                 Text(buildAnnotatedString {
                     val startIndex =

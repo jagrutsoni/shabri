@@ -142,10 +142,12 @@ class HomeViewModel @Inject constructor(
         }
 
         caption.copied++
-        state = state.copy(
-            captions = _uiState.value.captions
-        )
 
+        //patch
+        state = state.copy(
+            captions = _uiState.value.captions,
+            selectedHashtagSynonym = _uiState.value.selectedHashtagSynonym + " "
+        )
     }
 
     private fun getCaptionsFromFirestore() {

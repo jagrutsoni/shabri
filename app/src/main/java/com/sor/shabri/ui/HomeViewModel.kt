@@ -36,7 +36,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val captionRepository: CaptionRepository
-) : ViewModel(){
+) : ViewModel() {
 
     private var captionsOriginal: MutableList<Caption> = mutableListOf()
     private var captionsByLanguage: MutableList<Caption> = mutableListOf()
@@ -71,7 +71,7 @@ class HomeViewModel @Inject constructor(
 
         viewModelScope.launch {
 
-            withContext(Dispatchers.IO){
+            withContext(Dispatchers.IO) {
                 val filteredCaptions = filteredCaptionsByLanguage(getSelectedLanguageNames())
                 state = state.copy(
                     captions = filteredCaptions,
@@ -118,24 +118,6 @@ class HomeViewModel @Inject constructor(
 
     fun onCopy(caption: Caption) {
 
-       /* val captions = _uiState.value.captions..toMutableList()
-
-        val index = captions.indexOfFirst {
-            it.id == caption.id
-        }
-
-        if (index > -1) {
-            caption.copied++
-
-            captions[index] = caption
-
-            state = state.copy(
-                captions = captions
-            )
-
-//            captionRepository.copied(caption)
-        }
-*/
         viewModelScope.launch() {
 
             captionRepository.copied(caption)
@@ -243,10 +225,10 @@ class HomeViewModel @Inject constructor(
         hashtagsByLanguage.clear()
         val hashtags: MutableList<Hashtag> = mutableListOf()
         captions.forEach { caption ->
-            Log.d("caption" ,caption.toString())
-            Log.d("hashtags",caption.hashtags.toString())
+            Log.d("caption", caption.toString())
+            Log.d("hashtags", caption.hashtags.toString())
             caption.hashtags.forEach { hashtagName ->
-                Log.d("hashtag name",hashtagName)
+                Log.d("hashtag name", hashtagName)
 
                 val hashtag: Hashtag =
                     hashtagsOriginal.single { hashtag -> hashtag.name.equals(hashtagName, true) }
@@ -283,19 +265,22 @@ class HomeViewModel @Inject constructor(
         val selectedHashtag =
             if (_uiState.value.selectedHashtag == clickedHashtag) defaultHashtag else clickedHashtag
 
-        val filteredCaption = if (selectedHashtag == defaultHashtag) {
+        viewModelScope.launch() {
 
-            filterCaptionsByQuery(_uiState.value.queryString)
-        } else {
+            val filteredCaption = if (selectedHashtag == defaultHashtag) {
 
-            filterCaptionsByHashtag(selectedHashtag)
+                filterCaptionsByQuery(_uiState.value.queryString)
+            } else {
+
+                filterCaptionsByHashtag(selectedHashtag)
+            }
+
+            state = state.copy(
+                captions = filteredCaption,
+                selectedHashtag = selectedHashtag,
+                selectedHashtagSynonym = selectedHashtagSynonym
+            )
         }
-
-        state = state.copy(
-            captions = filteredCaption,
-            selectedHashtag = selectedHashtag,
-            selectedHashtagSynonym = selectedHashtagSynonym
-        )
 
     }
 
